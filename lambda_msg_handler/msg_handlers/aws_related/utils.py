@@ -39,17 +39,28 @@ def list_account_scps(account_id) -> str:
     args:
         account_id (str): 12 digit account id 
     '''
-    try:
-        response = org.list_policies_for_target(
-            TargetId=account_id,
-            Filter='SERVICE_CONTROL_POLICY',
-        )
-        ret = ", ".join([p['Name'] for p in response['Policies']])
-    except botocore.exceptions.ClientError as error:
-        if error.response['Error']['Code'] == 'TargetNotFoundException':
-            ret = f"account id {account_id} not found"
-        else:
-            ret = f"Fail to search aws account, due to error {str(error)}"
+    target_id = account_id
+    target_type = ""
+    ret = ""
+    while target_type != "ROOT":
+        try:
+            policies = org.list_policies_for_target(
+                TargetId=target_id,
+                Filter='SERVICE_CONTROL_POLICY',
+            )
+            ret += ", ".join([p['Name'] for p in policies['Policies']])
+
+            parent_target = org.list_parents(
+                ChildId=target_id,
+            )
+            target_id = parent_target["Parents"][0]["Id"]
+            target_type = parent_target["Parents"][0]["Type"]
+        except botocore.exceptions.ClientError as error:
+            if error.response['Error']['Code'] in ('TargetNotFoundException', 'ChildNotFoundException'):
+                ret = f"account id {account_id} not found"
+            else:
+                ret = f"Fail to search aws account, due to error {str(error)}"
+            break
 
     return ret
 
