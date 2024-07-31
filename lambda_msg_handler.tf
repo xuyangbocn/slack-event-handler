@@ -90,6 +90,23 @@ resource "aws_lambda_layer_version" "openai_sdk" {
   source_code_hash = data.archive_file.msg_handler.output_base64sha256
 }
 
+
+# Lambda layer for gitlab-sdk
+data "archive_file" "gitlab_sdk" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda_layer/py_gitlab_sdk/"
+  output_path = "${path.module}/files/py_gitlab_sdk.zip"
+}
+
+resource "aws_lambda_layer_version" "gitlab_sdk" {
+  layer_name          = "py-gitlab-sdk"
+  description         = "Include gitlab-sdk"
+  compatible_runtimes = ["python3.9", "python3.10", "python3.11", "python3.12"]
+
+  filename         = data.archive_file.gitlab_sdk.output_path
+  source_code_hash = data.archive_file.msg_handler.output_base64sha256
+}
+
 # Lambda source code
 data "archive_file" "msg_handler" {
   type             = "zip"
@@ -110,7 +127,8 @@ resource "aws_lambda_function" "msg_handler" {
   handler          = "lambda_function.lambda_handler"
   layers = [
     aws_lambda_layer_version.slack_sdk.arn,
-    aws_lambda_layer_version.openai_sdk.arn
+    aws_lambda_layer_version.openai_sdk.arn,
+    aws_lambda_layer_version.gitlab_sdk.arn
   ]
 
   environment {

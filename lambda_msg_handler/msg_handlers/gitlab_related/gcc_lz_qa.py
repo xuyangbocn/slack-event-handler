@@ -275,7 +275,7 @@ def deploy_a_feature_branch_to_project(branch, project) -> str:
         else:
             qa_feat.setup_feat_branch()
             qa_feat.trigger_testing_pipeline()
-            ret = qa_feat.output()
+            ret = str(qa_feat.output())
     except Exception as error:
         ret = f"Fail to deploy due to error {str(error)}"
 
@@ -311,7 +311,7 @@ def reset_project_to_main_branch(branch, project) -> str:
             qa_feat.delete_feat_branch()
             qa_feat.trigger_main_pipeline()
             qa_feat.delete_temp_pipeline_trigger()
-            ret = qa_feat.output()
+            ret = str(qa_feat.output())
     except Exception as error:
         ret = f"Fail to deploy due to error {str(error)}"
 

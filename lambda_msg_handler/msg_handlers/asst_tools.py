@@ -8,8 +8,6 @@ from msg_handlers.gitlab_related.gcc_lz_qa import deploy_a_feature_branch_to_pro
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-GITLAB_PA_TOKEN = GITLAB_PA_TOKEN
-
 
 def find_birthday(**args) -> str:
     name = args['name']
