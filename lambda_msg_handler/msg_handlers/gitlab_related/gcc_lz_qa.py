@@ -8,8 +8,6 @@ from gitlab.v4.objects import Project, ProjectTrigger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-GITLAB_PA_TOKEN = "GITLAB_PA_TOKEN"
-
 
 class GccLzQA(object):
     def __init__(self,
@@ -248,21 +246,27 @@ class GccLzQA(object):
         return pipeline
 
 
-def deploy_a_feature_branch_to_project(branch, project) -> str:
+def deploy_a_feature_branch_to_project(
+        branch, gcc_env, group, project,
+        gitlab_pa_token, gitlab_host, gcc_lz_repo) -> str:
     '''
     args
         branch (str): the git repo feature branch to be deployed
+        gcc_env (str): gcc env, gcc2_dev, gcc2_prd, gccplus_stg, gccplus_prd
+        group (str): the target gitlab group where the git project is in
         project (str): the target git project to deploy the feature branch to
+        gitlab_pa_token (str): gitlab personal access token
+        gitlab_host (str): gitlab host url
+        gcc_lz_repo (str): gcc landingzone repo
     '''
     try:
         qa_feat = GccLzQA(
-            gitlab_host="https://sgts.gitlab-dedicated.com/",
-            gitlab_pa_token=GITLAB_PA_TOKEN,
-            gcc_lz_repo="wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz/aws-tlz-landingzones/aws-landingzones",
+            gitlab_host=gitlab_host,
+            gitlab_pa_token=gitlab_pa_token,
+            gcc_lz_repo=gcc_lz_repo,
             testing_repos={
-                "gcc2_dev": {
-                    "grp": "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz-dev/agency-baseline/dev/gvt/",
-                    # "gcci-agency-gvt-gcc-monitoring-dev-baseline",
+                gcc_env: {
+                    "grp": group,
                     "prj": project
                 }
             },
@@ -282,21 +286,28 @@ def deploy_a_feature_branch_to_project(branch, project) -> str:
     return ret
 
 
-def reset_project_to_main_branch(branch, project) -> str:
+def reset_project_to_main_branch(
+        branch, gcc_env, group, project,
+        gitlab_pa_token, gitlab_host, gcc_lz_repo) -> str:
     '''
     args
         branch (str): the feature branch
+        gcc_env (str): gcc env, gcc2_dev, gcc2_prd, gccplus_stg, gccplus_prd
+        group (str): the target gitlab group where the git project is in
         project (str): the target project to restore to main branch
+        gitlab_pa_token (str): gitlab personal access token
+        gitlab_host (str): gitlab host url
+        gcc_lz_repo (str): gcc landingzone repo
+
     '''
     try:
         qa_feat = GccLzQA(
-            gitlab_host="https://sgts.gitlab-dedicated.com/",
-            gitlab_pa_token=GITLAB_PA_TOKEN,
-            gcc_lz_repo="wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz/aws-tlz-landingzones/aws-landingzones",
+            gitlab_host=gitlab_host,
+            gitlab_pa_token=gitlab_pa_token,
+            gcc_lz_repo=gcc_lz_repo,
             testing_repos={
-                "gcc2_dev": {
-                    "grp": "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz-dev/agency-baseline/dev/gvt/",
-                    # "gcci-agency-gvt-gcc-monitoring-dev-baseline",
+                gcc_env: {
+                    "grp": group,
                     "prj": project
                 }
             },

@@ -27,23 +27,39 @@ def current_datetime(**args) -> str:
 
 
 def aws_find_account_details(**args) -> str:
-    return find_account_details(args["account_id"])
+    return find_account_details(llm_tools_vars['iamr_gcc2dev_org'], args["account_id"])
 
 
 def aws_list_account_scps(**args) -> str:
-    return list_account_scps(args["account_id"])
+    return list_account_scps(llm_tools_vars['iamr_gcc2dev_org'], args["account_id"])
 
 
 def aws_create_a_gen_vpc(**args) -> str:
-    return create_a_gen_vpc(args["name"], args["cidr_block"])
+    return create_a_gen_vpc(llm_tools_vars['iamr_demo_acct'], args["name"], args["cidr_block"])
 
 
 def gitlab_deploy_a_feature_branch_to_project(**args) -> str:
-    return deploy_a_feature_branch_to_project(args["branch"], args["project"])
+    gitlab_grp = {
+        "gccplus_stg": "wog/gvt/gccplus/gvt-gccplus/provisioning/tlz-stg/agency-baseline/stg/gvt/",
+        "gccplus_prd": "wog/gvt/gccplus/gvt-gccplus/provisioning/tlz/agency-baseline/prod/gvt/",
+        "gcc2_dev": "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz-dev/agency-baseline/dev/gvt/",
+        "gcc2_prd":  "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz/agency-baseline/prod/gvt/",
+    }
+    return deploy_a_feature_branch_to_project(
+        args["branch"], args['gcc_env'], gitlab_grp[args['gcc_env']],  args["project"],
+        llm_tools_vars['gitlab_pa_token'], llm_tools_vars['gitlab_host'], llm_tools_vars['gcc_lz_repo'])
 
 
 def gitlab_reset_project_to_main_branch(**args) -> str:
-    return reset_project_to_main_branch(args["branch"], args["project"])
+    gitlab_grp = {
+        "gccplus_stg": "wog/gvt/gccplus/gvt-gccplus/provisioning/tlz-stg/agency-baseline/stg/gvt/",
+        "gccplus_prd": "wog/gvt/gccplus/gvt-gccplus/provisioning/tlz/agency-baseline/prod/gvt/",
+        "gcc2_dev": "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz-dev/agency-baseline/dev/gvt/",
+        "gcc2_prd":  "wog/gvt/gcc/gcc2.0/gcc-provisioning-squad/tlz/agency-baseline/prod/gvt/",
+    }
+    return reset_project_to_main_branch(
+        args["branch"], args['gcc_env'], gitlab_grp[args['gcc_env']],  args["project"],
+        llm_tools_vars['gitlab_pa_token'], llm_tools_vars['gitlab_host'], llm_tools_vars['gcc_lz_repo'])
 
 
 tools = {
@@ -59,7 +75,7 @@ tools = {
                         "name": {
                             "type": "string",
                             "description": "Name of the person."
-                        }
+                        },
                     },
                     "required": ["name"],
                 },
@@ -85,8 +101,8 @@ tools = {
                     "properties": {
                         "account_id": {
                             "type": "string",
-                            "description": "AWS Account id."
-                        }
+                            "description": "AWS Account id, format is always a 12-digit numeric string."
+                        },
                     },
                     "required": ["account_id"],
                 }
@@ -101,8 +117,8 @@ tools = {
                     "properties": {
                         "account_id": {
                             "type": "string",
-                            "description": "AWS Account id."
-                        }
+                            "description": "AWS Account id, format is always a 12-digit numeric string."
+                        },
                     },
                     "required": ["account_id"],
                 }
@@ -121,9 +137,10 @@ tools = {
                         },
                         "cidr_block": {
                             "type": "string",
-                            "description": "The network CIDR range block for the VPC."
-                        }
-                    }
+                            "description": "The network CIDR range block for the VPC. For example, 172.0.0.0/26"
+                        },
+                    },
+                    "required": ["name", "cidr_block"],
                 }
             }
         }, {
@@ -138,11 +155,18 @@ tools = {
                             "type": "string",
                             "description": "The git repo feature branch to be deployed"
                         },
+                        "gcc_env": {
+                            "type": "string",
+                            "enum": ["gcc2_dev",],
+                            # "enum": ["gcc2_dev", "gcc2_prd", "gccplus_stg", "gccplus_prd"],
+                            "description": "The target GCC environment to deploy the feature branch to."
+                        },
                         "project": {
                             "type": "string",
-                            "description": "The target git project to deploy the feature branch to"
-                        }
-                    }
+                            "description": "The target git project to deploy the feature branch to. For example: gcci-agency-gvt-gcc-monitoring-dev-baseline."
+                        },
+                    },
+                    "required": ["branch", "gcc_env", "project"],
                 }
             }
         }, {
@@ -157,11 +181,18 @@ tools = {
                             "type": "string",
                             "description": "The git repo feature branch that currently the project is on."
                         },
+                        "gcc_env": {
+                            "type": "string",
+                            "enum": ["gcc2_dev", ],
+                            # "enum": ["gcc2_dev", "gcc2_prd", "gccplus_stg", "gccplus_prd"],
+                            "description": "The target GCC environment to deploy the feature branch to."
+                        },
                         "project": {
                             "type": "string",
-                            "description": "The target git project to restore to main branch"
-                        }
-                    }
+                            "description": "The target git project to restore to main branch. For example: gcci-agency-gvt-gcc-monitoring-dev-baseline"
+                        },
+                    },
+                    "required": ["branch", "gcc_env", "project"],
                 }
             }
         },

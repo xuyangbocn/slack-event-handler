@@ -1,26 +1,36 @@
 import boto3
 import botocore
 
-org = boto3.client(
-    'organizations',
-    aws_access_key_id="ACCESS_KEY",
-    aws_secret_access_key="SECRET_KEY",
-    aws_session_token="SESSION_TOKEN"
-)
-ec2 = boto3.client(
-    'ec2',
-    aws_access_key_id="ACCESS_KEY",
-    aws_secret_access_key="SECRET_KEY",
-    aws_session_token="SESSION_TOKEN"
-)
+sts_client = boto3.client('sts')
 
 
-def find_account_details(account_id) -> str:
+def get_sts_client(service, role_arn):
+    """
+    Get sts assume role credential to call boto3 APIs when assuming cross-account roles.
+    Args:
+        service: the service name used for calling the boto.client()
+        role_arn: the ARN of the role to assume
+    Return:
+        service boto3 client. 
+    """
+    resp = sts_client.assume_role(
+        RoleArn=role_arn, RoleSessionName=f"SlackApp assume role for {service}")
+    credentials = resp['Credentials']
+
+    return boto3.client(service, aws_access_key_id=credentials['AccessKeyId'],
+                        aws_secret_access_key=credentials['SecretAccessKey'],
+                        aws_session_token=credentials['SessionToken']
+                        )
+
+
+def find_account_details(iam_role_arn, account_id) -> str:
     '''
     args:
+        iam_role_arn (str): iam role to assume
         account_id (str): 12 digit account id 
     '''
     try:
+        org = get_sts_client('organizations', iam_role_arn)
         response = org.describe_account(
             AccountId=account_id
         )
@@ -34,9 +44,10 @@ def find_account_details(account_id) -> str:
     return ret
 
 
-def list_account_scps(account_id) -> str:
+def list_account_scps(iam_role_arn, account_id) -> str:
     '''
     args:
+        iam_role_arn (str): iam role to assume
         account_id (str): 12 digit account id 
     '''
     target_id = account_id
@@ -44,6 +55,7 @@ def list_account_scps(account_id) -> str:
     ret = ""
     while target_type != "ROOT":
         try:
+            org = get_sts_client('organizations', iam_role_arn)
             policies = org.list_policies_for_target(
                 TargetId=target_id,
                 Filter='SERVICE_CONTROL_POLICY',
@@ -65,13 +77,15 @@ def list_account_scps(account_id) -> str:
     return ret
 
 
-def create_a_gen_vpc(name, cidr_block) -> str:
+def create_a_gen_vpc(iam_role_arn, name, cidr_block) -> str:
     '''
     args:
+        iam_role_arn (str): iam role to assume
         name (str): vpc tag for name
         cidr_block (str): cidr_block for VPC creation
     '''
     try:
+        ec2 = get_sts_client('ec2', iam_role_arn)
         response = ec2.create_vpc(
             CidrBlock=cidr_block,
             AmazonProvidedIpv6CidrBlock=False,
