@@ -1,7 +1,13 @@
+import logging
+import json
 import boto3
 import botocore
+from boto3.dynamodb.types import TypeDeserializer
 
 sts_client = boto3.client('sts')
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 
 def get_sts_client(service, role_arn):
@@ -40,6 +46,48 @@ def find_account_details(iam_role_arn, account_id) -> str:
             ret = f"account id {account_id} not found"
         else:
             ret = f"Fail to search aws account, due to error {str(error)}"
+
+    return ret
+
+
+def find_subscription_details(iam_role_arn, subscription_id) -> str:
+    '''
+    Query CloudResourceDetails table in Core-shared-service
+    args:
+        iam_role_arn (str): iam role to assume
+        subscription_id (str): alphanumeric with hyphen, total 36 characters
+    '''
+    d = TypeDeserializer()
+    try:
+        ddb = get_sts_client('dynamodb', iam_role_arn)
+        resp = ddb.query(
+            TableName='CloudResourceDetails',
+            IndexName='ResourceParentIndex',
+            KeyConditionExpression='#rt_rid = :rt_rid',
+            ExpressionAttributeValues={
+                ':rt_rid': {
+                    'S': f'CSPAcc/{subscription_id}',
+                }
+            },
+            ExpressionAttributeNames={
+                "#rt_rid": "ResourceType#ResourceId"
+            }
+        )
+        record = {
+            k: d.deserialize(value=v) for k, v in
+            resp.get('Items')[0]['Details']['M'].items()
+        }
+        record.pop('AccountName', '')
+        record.pop('AccountId', '')
+        record.pop('AccountType', '')
+        record.pop('Provider', '')
+        git = json.loads(record.pop('GitLabDetails', '{}'))
+        # record['Gitlab Repo'] = git.get('WebUrl')
+        # record['Gitlab Repo Path'] = git.get('PathWithNamespace')
+        record['Subscription Id'] = subscription_id
+        ret = json.dumps(record, indent=2)
+    except (botocore.exceptions.ClientError, KeyError) as exNotFound:
+        ret = f"Subscription {subscription_id} not found"
 
     return ret
 

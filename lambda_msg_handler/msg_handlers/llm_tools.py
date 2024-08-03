@@ -3,7 +3,7 @@ import os
 import json
 from datetime import datetime, timezone
 
-from msg_handlers.aws_related.utils import find_account_details, list_account_scps, create_a_gen_vpc
+from msg_handlers.aws_related.utils import find_account_details, list_account_scps, create_a_gen_vpc, find_subscription_details
 from msg_handlers.gitlab_related.gcc_lz_qa import deploy_a_feature_branch_to_project, reset_project_to_main_branch
 
 logger = logging.getLogger()
@@ -32,6 +32,10 @@ def aws_find_account_details(**args) -> str:
 
 def aws_list_account_scps(**args) -> str:
     return list_account_scps(llm_tools_vars['iamr_gcc2dev_org'], args["account_id"])
+
+
+def azure_find_subscription_details(**args) -> str:
+    return find_subscription_details(llm_tools_vars['iamr_gcc2dev_css'], args["subscription_id"])
 
 
 def aws_create_a_gen_vpc(**args) -> str:
@@ -126,6 +130,22 @@ tools = {
         }, {
             "type": "function",
             "function": {
+                "name": "azure_find_subscription_details",
+                "description": "Find the owner, tenant details and git repo of an azure subscription by subscription id",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "subscription_id": {
+                            "type": "string",
+                            "description": "Azure Subscription id, format is always a 36 character string with alphanumeric and hyphen."
+                        },
+                    },
+                    "required": ["subscription_id"],
+                }
+            }
+        }, {
+            "type": "function",
+            "function": {
                 "name": "aws_create_a_gen_vpc",
                 "description": "This function will create a VPC with the specified name and the CIDR range block",
                 "parameters": {
@@ -203,6 +223,7 @@ tools = {
         "current_datetime": current_datetime,
         "aws_find_account_details": aws_find_account_details,
         "aws_list_account_scps": aws_list_account_scps,
+        "azure_find_subscription_details": azure_find_subscription_details,
         "aws_create_a_gen_vpc": aws_create_a_gen_vpc,
         "gitlab_deploy_a_feature_branch_to_project": gitlab_deploy_a_feature_branch_to_project,
         "gitlab_reset_project_to_main_branch": gitlab_reset_project_to_main_branch,
