@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from datetime import datetime, timezone
 
 from msg_handlers.aws_related.utils import find_account_details, list_account_scps, create_a_gen_vpc
@@ -7,6 +8,10 @@ from msg_handlers.gitlab_related.gcc_lz_qa import deploy_a_feature_branch_to_pro
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+llm_tools_vars = json.loads(
+    os.environ.get('llm_tools_vars', '{}')
+)
 
 
 def find_birthday(**args) -> str:
