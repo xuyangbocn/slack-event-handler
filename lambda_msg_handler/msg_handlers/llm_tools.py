@@ -147,7 +147,7 @@ tools = {
             "type": "function",
             "function": {
                 "name": "gitlab_deploy_a_feature_branch_to_project",
-                "description": "This function will trigger a gitlab pipeline to deploy the feature branch for the git project. The output is the link to the deployment pipeline",
+                "description": "This function will trigger a gitlab pipeline to deploy the feature branch for the git project. The output is the link to the deployment pipeline. Please always ask user for input if not clear, and always double confirm with user before running this function.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -173,7 +173,7 @@ tools = {
             "type": "function",
             "function": {
                 "name": "gitlab_reset_project_to_main_branch",
-                "description": "This function will restore a gitlab repo from feature branch back to main branch, and trigger a pipeline for deployment. The output is the link to the deployment pipeline",
+                "description": "This function will restore a gitlab repo from feature branch back to main branch, and trigger a pipeline for deployment. The output is the link to the deployment pipeline. Please always ask user for input if not clear, and always double confirm with user before running this function.",
                 "parameters": {
                     "type": "object",
                     "properties": {
