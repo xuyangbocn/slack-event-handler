@@ -14,7 +14,7 @@ def get_sts_client(service, role_arn):
         service boto3 client. 
     """
     resp = sts_client.assume_role(
-        RoleArn=role_arn, RoleSessionName=f"SlackApp assume role for {service}")
+        RoleArn=role_arn, RoleSessionName=f"SlackApp_Assume_role_for_{service}")
     credentials = resp['Credentials']
 
     return boto3.client(service, aws_access_key_id=credentials['AccessKeyId'],
