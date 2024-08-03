@@ -1,11 +1,14 @@
+from msg_handlers.gitlab_related.gcc_lz_qa import deploy_a_feature_branch_to_project, reset_project_to_main_branch
+from msg_handlers.aws_related.utils import find_account_details, list_account_scps, create_a_gen_vpc, find_subscription_details
 import logging
 import os
 import json
 from datetime import datetime, timezone
 
-from msg_handlers.aws_related.utils import find_account_details, list_account_scps, create_a_gen_vpc, find_subscription_details
-from msg_handlers.gitlab_related.gcc_lz_qa import deploy_a_feature_branch_to_project, reset_project_to_main_branch
+<< << << < HEAD
 
+== == == =
+>>>>>> > main
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -78,7 +81,7 @@ tools = {
                     "properties": {
                         "name": {
                             "type": "string",
-                            "description": "Name of the person."
+                            "description": "Name of the person.",
                         },
                     },
                     "required": ["name"],
